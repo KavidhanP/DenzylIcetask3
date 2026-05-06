@@ -1,0 +1,396 @@
+﻿@{
+    ViewData["Title"] = "Driver Performance";
+    ViewData["ActivePage"] = "DriverPerformance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: var(--card-bg, #1e1e2e);
+        border: 1px solid var(--border, #2a2a3d);
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .stat-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted, #888);
+        font-weight: 600;
+    }
+
+    .stat-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--text, #f0f0f0);
+        line-height: 1;
+    }
+
+        .stat-value span {
+            font-size: 1rem;
+            color: var(--muted, #888);
+            font-weight: 400;
+        }
+
+    .stat-card.highlight {
+        border-color: var(--primary, #4f8ef7);
+        background: linear-gradient(135deg, var(--primary-soft, rgba(79,142,247,0.08)), transparent);
+    }
+
+    .driver-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .driver-table th {
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--muted, #888);
+            font-weight: 600;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border, #2a2a3d);
+        }
+
+        .driver-table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--border, #2a2a3d);
+            font-size: 0.9rem;
+            color: var(--text, #f0f0f0);
+            vertical-align: middle;
+        }
+
+        .driver-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .driver-table tr:hover td {
+            background: var(--hover, rgba(255,255,255,0.03));
+        }
+
+    .driver-name {
+        font-weight: 600;
+        font-size: 0.92rem;
+    }
+
+    .driver-id {
+        font-size: 0.75rem;
+        color: var(--muted, #888);
+        margin-top: 2px;
+    }
+
+    .score-bar-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .score-bar {
+        flex: 1;
+        height: 6px;
+        background: var(--border, #2a2a3d);
+        border-radius: 99px;
+        overflow: hidden;
+        min-width: 70px;
+    }
+
+    .score-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+    }
+
+    .score-num {
+        font-size: 0.82rem;
+        font-weight: 700;
+        min-width: 28px;
+        text-align: right;
+    }
+
+    .leaderboard-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+
+    .leader-card {
+        background: var(--card-bg, #1e1e2e);
+        border: 1px solid var(--border, #2a2a3d);
+        border-radius: 10px;
+        padding: 18px 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+        .leader-card.rank-1 {
+            border-color: #ffc400;
+        }
+
+        .leader-card.rank-2 {
+            border-color: #c0c0c0;
+        }
+
+        .leader-card.rank-3 {
+            border-color: #cd7f32;
+        }
+
+    .leader-rank {
+        font-size: 1.5rem;
+        min-width: 28px;
+        text-align: center;
+    }
+
+    .leader-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .leader-name {
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .leader-score {
+        font-size: 0.75rem;
+        color: var(--muted, #888);
+        margin-top: 2px;
+    }
+
+    .state-box {
+        padding: 48px;
+        text-align: center;
+        color: var(--muted, #888);
+        font-size: 0.9rem;
+    }
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid var(--border, #2a2a3d);
+        border-top-color: var(--primary, #4f8ef7);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        margin: 0 auto 14px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .fill-green {
+        background: #22c55e;
+    }
+
+    .fill-blue {
+        background: var(--primary, #4f8ef7);
+    }
+
+    .fill-yellow {
+        background: #ffc400;
+    }
+
+    .fill-orange {
+        background: #f97316;
+    }
+
+    .fill-red {
+        background: var(--red, #ef4444);
+    }
+</style>
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Driver Performance</h2>
+        <p>Fleet efficiency leaderboard &amp; metrics</p>
+    </div>
+    <button class="btn btn-outline" onclick="loadAll()">↻ Refresh</button>
+</div>
+
+<div class="stat-grid" id="summaryGrid">
+    <div class="stat-card"><div class="spinner"></div></div>
+</div>
+
+<h3 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted,#888);margin-bottom:12px;font-weight:600;">
+    Top Performers
+</h3>
+<div class="leaderboard-strip" id="leaderboard">
+    <div class="state-box" style="grid-column:1/-1;padding:28px;">
+        <div class="spinner" style="width:20px;height:20px;border-width:2px;"></div>
+    </div>
+</div>
+
+<div class="flex-between" style="margin-bottom:12px;align-items:center;">
+    <h3 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted,#888);font-weight:600;margin:0;">
+        All Drivers
+    </h3>
+    <input id="searchInput" class="form-control"
+           style="max-width:220px;padding:7px 12px;font-size:0.85rem;"
+           placeholder="Search by name or ID…"
+           oninput="filterTable()" />
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+    <div id="tableWrap">
+        <div class="state-box"><div class="spinner"></div><div>Loading drivers…</div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const API = '/api/driver';
+        let allDrivers = [];
+
+        function scoreColour(s) {
+            if (s >= 90) return 'fill-green';
+            if (s >= 80) return 'fill-blue';
+            if (s >= 70) return 'fill-yellow';
+            if (s >= 60) return 'fill-orange';
+            return 'fill-red';
+        }
+
+        function bar(value, max, cssClass) {
+            const pct = Math.min(100, (value / max) * 100).toFixed(1);
+            return `<div class="score-bar-wrap">
+                      <div class="score-bar">
+                        <div class="score-bar-fill ${cssClass}" style="width:${pct}%"></div>
+                      </div>
+                      <span class="score-num">${value}</span>
+                    </div>`;
+        }
+
+        async function loadSummary() {
+            try {
+                const res  = await fetch(`${API}/summary`);
+                const data = await res.json();
+                const s    = data.summary;
+                document.getElementById('summaryGrid').innerHTML = `
+                    <div class="stat-card highlight">
+                        <div class="stat-label">Total Drivers</div>
+                        <div class="stat-value">${s.total_drivers}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg On-Time Rate</div>
+                        <div class="stat-value">${s.average_on_time_rate.toFixed(1)}<span>%</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Rating</div>
+                        <div class="stat-value">${s.average_rating.toFixed(2)}<span> ★</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Deliveries</div>
+                        <div class="stat-value">${Math.round(s.average_deliveries)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Fuel Eff.</div>
+                        <div class="stat-value">${s.average_fuel_efficiency.toFixed(1)}<span> L/100</span></div>
+                    </div>`;
+            } catch {
+                document.getElementById('summaryGrid').innerHTML =
+                    `<div class="stat-card"><div class="stat-label" style="color:var(--red)">Failed to load summary</div></div>`;
+            }
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const res  = await fetch(`${API}/leaderboard`);
+                const data = await res.json();
+                const medals = ['🥇','🥈','🥉'];
+                const cls    = ['rank-1','rank-2','rank-3'];
+                document.getElementById('leaderboard').innerHTML = data.leaderboard.map((d, i) => `
+                    <div class="leader-card ${cls[i]}">
+                        <div class="leader-rank">${medals[i]}</div>
+                        <div class="leader-info">
+                            <div class="leader-name">${d.name}</div>
+                            <div class="leader-score">Score ${d.efficiencyScore} · ${d.onTimeRate}% on-time</div>
+                        </div>
+                    </div>`).join('');
+            } catch {
+                document.getElementById('leaderboard').innerHTML =
+                    `<div class="state-box" style="grid-column:1/-1">Failed to load leaderboard</div>`;
+            }
+        }
+
+        async function loadDrivers() {
+            try {
+                const res  = await fetch(API);
+                const data = await res.json();
+                allDrivers = data.drivers;
+                renderTable(allDrivers);
+            } catch {
+                document.getElementById('tableWrap').innerHTML =
+                    `<div class="state-box">Could not reach API. Is it running?</div>`;
+            }
+        }
+
+        function renderTable(drivers) {
+            if (!drivers.length) {
+                document.getElementById('tableWrap').innerHTML =
+                    `<div class="state-box">No drivers match your search.</div>`;
+                return;
+            }
+            document.getElementById('tableWrap').innerHTML = `
+                <table class="driver-table">
+                    <thead>
+                        <tr>
+                            <th>Driver</th>
+                            <th>On-Time Rate</th>
+                            <th>Rating</th>
+                            <th>Deliveries</th>
+                            <th>Fuel Eff.</th>
+                            <th>Efficiency Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${drivers.map(d => `
+                        <tr>
+                            <td>
+                                <div class="driver-name">${d.name}</div>
+                                <div class="driver-id">${d.id}</div>
+                            </td>
+                            <td>${bar(d.onTimeRate, 100, 'fill-green')}</td>
+                            <td>
+                                <span style="font-weight:600;">${d.rating}</span>
+                                <span style="color:var(--muted,#888);font-size:0.78rem;"> ★</span>
+                            </td>
+                            <td>${d.deliveries}</td>
+                            <td>${d.fuelEfficiency} <span style="color:var(--muted,#888);font-size:0.78rem;">L/100</span></td>
+                            <td>${bar(d.efficiencyScore, 100, scoreColour(d.efficiencyScore))}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        function filterTable() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            renderTable(allDrivers.filter(d =>
+                d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q)
+            ));
+        }
+
+        function loadAll() {
+            loadSummary();
+            loadLeaderboard();
+            loadDrivers();
+        }
+
+        loadAll();
+    </script>
+}
