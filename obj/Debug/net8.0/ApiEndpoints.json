@@ -1,0 +1,48 @@
+[
+  {
+    "ContainingType": "LogiTech.Controllers.DriverApiController",
+    "Method": "GetAllDrivers",
+    "RelativePath": "api/driver",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LogiTech.Controllers.DriverApiController",
+    "Method": "GetDriverById",
+    "RelativePath": "api/driver/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LogiTech.Controllers.DriverApiController",
+    "Method": "GetLeaderboard",
+    "RelativePath": "api/driver/leaderboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LogiTech.Controllers.DriverApiController",
+    "Method": "GetSummary",
+    "RelativePath": "api/driver/summary",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
