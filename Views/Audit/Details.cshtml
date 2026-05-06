@@ -1,0 +1,61 @@
+﻿@model LogiTech.Models.WarehouseAudit
+@{
+    ViewData["Title"] = "Audit Details";
+    ViewData["ActivePage"] = "WarehouseAudit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Audit Entry Details</h2>
+        <p>Full chain of custody record</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline">← Back</a>
+</div>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <table>
+            <tbody>
+                <tr>
+                    <th style="width:160px;">Tracking Number</th>
+                    <td style="color:var(--accent);font-weight:600;">
+                        @Model.TrackingNumber
+                    </td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        <span class="badge @(Model.Status == "Inbound" ? "badge-green" :
+                                                                           Model.Status == "Outbound" ? "badge-orange" :
+                                                                           "badge-blue")">
+                            @Model.Status
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>@Model.Location</td>
+                </tr>
+                <tr>
+                    <th>Operator</th>
+                    <td>@Model.OperatorName</td>
+                </tr>
+                <tr>
+                    <th>Timestamp</th>
+                    <td>@Model.Timestamp.ToString("yyyy/MM/dd HH:mm:ss")</td>
+                </tr>
+                <tr>
+                    <th>Notes</th>
+                    <td style="color:var(--muted);">@Model.Notes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+            <a asp-action="Delete" asp-route-id="@Model.LogId"
+               class="btn btn-danger btn-sm">Delete</a>
+            <a asp-action="Index" class="btn btn-outline btn-sm">Back to Trail</a>
+        </div>
+    </div>
+</div>

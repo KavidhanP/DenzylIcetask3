@@ -1,0 +1,85 @@
+﻿@model IEnumerable<LogiTech.Models.WarehouseAudit>
+@{
+    ViewData["Title"] = "Warehouse Audit Trail";
+    ViewData["ActivePage"] = "WarehouseAudit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Warehouse Audit Trail</h2>
+        <p>Chain of Custody Tracking | ST10442488</p>
+    </div>
+    <a asp-action="LogMovement" class="btn btn-primary">+ Log New Movement</a>
+</div>
+
+<!-- Search -->
+<div class="card" style="margin-bottom:20px;">
+    <form asp-action="Index" method="get" style="display:flex;gap:12px;align-items:center;">
+        <input type="text" name="searchString"
+               value="@ViewData["CurrentFilter"]"
+               class="form-control"
+               placeholder="Enter Tracking Number (e.g. LOG-9842-01)..."
+               style="flex:1;" />
+        <button type="submit" class="btn btn-primary">Search Trail</button>
+        <a asp-action="Index" class="btn btn-outline">Clear</a>
+    </form>
+</div>
+
+<!-- Audit Table -->
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Tracking Number</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Operator</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="7" style="text-align:center;
+                                               color:var(--muted);padding:40px;">
+                        No audit logs found.
+                    </td>
+                </tr>
+            }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="color:var(--muted);font-size:0.82rem;">
+                        @item.Timestamp.ToString("yyyy/MM/dd HH:mm:ss")
+                    </td>
+                    <td style="color:var(--accent);font-weight:600;">
+                        @item.TrackingNumber
+                    </td>
+                    <td>
+                        <span class="badge @(item.Status == "Inbound" ? "badge-green" :
+                                                                           item.Status == "Outbound" ? "badge-orange" :
+                                                                           item.Status == "Sorting" ? "badge-blue" :
+                                                                           "badge-green")">
+                        @item.Status
+                    </span>
+                </td>
+                <td>@item.Location</td>
+                <td>@item.OperatorName</td>
+                <td style="color:var(--muted);font-size:0.82rem;">
+                    @item.Notes
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.LogId"
+                       class="btn btn-outline btn-sm">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.LogId"
+                       class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+                        }
+        </tbody>
+    </table>
+</div>

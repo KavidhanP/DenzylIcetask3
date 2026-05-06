@@ -1,0 +1,83 @@
+﻿@model LogiTech.Models.WarehouseAudit
+@{
+    ViewData["Title"] = "Log Movement";
+    ViewData["ActivePage"] = "WarehouseAudit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Log New Movement</h2>
+        <p>Record chain of custody entry</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline">← Back</a>
+</div>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <form method="post" asp-action="LogMovement">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Tracking Number <span style="color:var(--red);">*</span></label>
+                <input class="form-control" asp-for="TrackingNumber"
+                       placeholder="e.g. LOG-9842-01" required />
+                <span asp-validation-for="TrackingNumber"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Status <span style="color:var(--red);">*</span></label>
+                <select class="form-control" asp-for="Status" required>
+                    <option value="">-- Select Status --</option>
+                    <option value="Inbound">Inbound</option>
+                    <option value="Sorting">Sorting</option>
+                    <option value="Outbound">Outbound</option>
+                    <option value="Scan-In">Scan-In</option>
+                    <option value="Scan-Out">Scan-Out</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+                <span asp-validation-for="Status"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Location <span style="color:var(--red);">*</span></label>
+                <input class="form-control" asp-for="Location"
+                       placeholder="e.g. Dock A, Sorting Zone 1, Loading Bay 2"
+                       required />
+                <span asp-validation-for="Location"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Operator Name <span style="color:var(--red);">*</span></label>
+                <input class="form-control" asp-for="OperatorName"
+                       placeholder="e.g. J. Smith" required />
+                <span asp-validation-for="OperatorName"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea class="form-control" asp-for="Notes"
+                          placeholder="Notes..."
+                          rows="3"></textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    Log Movement
+                </button>
+                <a asp-action="Index" class="btn btn-outline"
+                   style="flex:1;text-align:center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
