@@ -1,0 +1,295 @@
+﻿@{
+    ViewData["Title"] = "Notifications";
+    ViewData["ActivePage"] = "Notification";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: var(--card-bg, #1e1e2e);
+        border: 1px solid var(--border, #2a2a3d);
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    .stat-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted, #888);
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .stat-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--text, #f0f0f0);
+        line-height: 1;
+    }
+
+        .stat-value span {
+            font-size: 1rem;
+            color: var(--muted, #888);
+            font-weight: 400;
+        }
+
+    .notif-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .notif-table th {
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--muted, #888);
+            font-weight: 600;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border, #2a2a3d);
+        }
+
+        .notif-table td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border, #2a2a3d);
+            font-size: 0.88rem;
+            color: var(--text, #f0f0f0);
+            vertical-align: middle;
+        }
+
+        .notif-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .notif-table tr:hover td {
+            background: var(--hover, rgba(255,255,255,0.03));
+        }
+
+    .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .badge-sent {
+        background: rgba(34,197,94,0.15);
+        color: #22c55e;
+    }
+
+    .badge-pending {
+        background: rgba(250,204,21,0.15);
+        color: #facc15;
+    }
+
+    .badge-failed {
+        background: rgba(239,68,68,0.15);
+        color: #ef4444;
+    }
+
+    .badge-sms {
+        background: rgba(79,142,247,0.15);
+        color: var(--primary, #4f8ef7);
+    }
+
+    .badge-email {
+        background: rgba(168,85,247,0.15);
+        color: #a855f7;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+    .modal {
+        background: var(--card-bg, #1e1e2e);
+        border: 1px solid var(--border, #2a2a3d);
+        border-radius: 12px;
+        padding: 28px;
+        width: 100%;
+        max-width: 480px;
+    }
+
+        .modal h3 {
+            margin: 0 0 20px;
+            font-size: 1rem;
+        }
+
+    .spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid var(--border, #2a2a3d);
+        border-top-color: var(--primary, #4f8ef7);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        margin: 32px auto;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Customer Notifications</h2>
+        <p>Shipment status alerts &amp; delivery log</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('sendModal').classList.add('open')">
+        + Send Notification
+    </button>
+</div>
+
+<div class="stat-grid" id="kpiGrid">
+    <div class="stat-card"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div></div>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+    <div id="tableWrap">
+        <div style="padding:40px;text-align:center;color:var(--muted,#888);">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Notification Modal -->
+<div class="modal-overlay" id="sendModal">
+    <div class="modal">
+        <h3>Send Notification</h3>
+        <div class="form-group">
+            <label>Tracking Number</label>
+            <input class="form-control" id="f-tracking" placeholder="e.g. LOG-9842-01" />
+        </div>
+        <div class="form-group">
+            <label>Customer Name</label>
+            <input class="form-control" id="f-name" placeholder="e.g. John Smith" />
+        </div>
+        <div class="form-group">
+            <label>Event Type</label>
+            <select class="form-control" id="f-event">
+                <option value="">-- Select Event --</option>
+                <option>Order Confirmed</option>
+                <option>Dispatched</option>
+                <option>Out for Delivery</option>
+                <option>Delivered</option>
+                <option>Delayed</option>
+                <option>Status Update</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Channel</label>
+            <select class="form-control" id="f-channel">
+                <option value="0">SMS</option>
+                <option value="1">Email</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Recipient</label>
+            <input class="form-control" id="f-recipient" placeholder="+27821234567 or email" />
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="sendNotification()">Send</button>
+            <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('sendModal').classList.remove('open')">Cancel</button>
+        </div>
+        <p id="sendError" style="color:var(--red,#ef4444);font-size:0.82rem;margin-top:10px;display:none;"></p>
+    </div>
+</div>
+
+<script>
+    async function loadKpis() {
+        try {
+            const r = await fetch('/api/notifications/kpis');
+            const d = await r.json();
+            document.getElementById('kpiGrid').innerHTML = `
+                <div class="stat-card"><div class="stat-label">Notifications Sent</div><div class="stat-value">${d.notificationsSent}</div></div>
+                <div class="stat-card"><div class="stat-label">Delivery Rate</div><div class="stat-value">${d.deliveryRate}<span>%</span></div></div>
+                <div class="stat-card"><div class="stat-label">Webhooks Triggered</div><div class="stat-value">${d.webhooksTriggered}</div></div>`;
+        } catch {
+            document.getElementById('kpiGrid').innerHTML = `<div class="stat-card" style="color:var(--red,#ef4444);">Could not load KPIs</div>`;
+        }
+    }
+
+    async function loadNotifications() {
+        try {
+            const r = await fetch('/api/notifications');
+            const data = await r.json();
+            if (!data.length) {
+                document.getElementById('tableWrap').innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted,#888);">No notifications yet.</div>`;
+                return;
+            }
+            document.getElementById('tableWrap').innerHTML = `
+                <table class="notif-table">
+                    <thead><tr>
+                        <th>Tracking</th><th>Customer</th><th>Event</th>
+                        <th>Channel</th><th>Recipient</th><th>Status</th><th>Sent At</th>
+                    </tr></thead>
+                    <tbody>${data.map(n => `<tr>
+                        <td style="font-weight:600;">${n.trackingNumber}</td>
+                        <td>${n.customerName}</td>
+                        <td>${n.eventType}</td>
+                        <td><span class="badge badge-${n.channel === 0 ? 'sms' : 'email'}">${n.channel === 0 ? 'SMS' : 'Email'}</span></td>
+                        <td style="color:var(--muted,#888);font-size:0.82rem;">${n.recipient}</td>
+                        <td><span class="badge badge-${n.status === 1 ? 'sent' : n.status === 0 ? 'pending' : 'failed'}">${n.status === 1 ? 'Sent' : n.status === 0 ? 'Pending' : 'Failed'}</span></td>
+                        <td style="color:var(--muted,#888);font-size:0.82rem;">${n.sentAt ? new Date(n.sentAt).toLocaleString() : '—'}</td>
+                    </tr>`).join('')}</tbody>
+                </table>`;
+        } catch {
+            document.getElementById('tableWrap').innerHTML = `<div style="padding:40px;text-align:center;color:var(--red,#ef4444);">Could not load notifications.</div>`;
+        }
+    }
+
+    async function sendNotification() {
+        const err = document.getElementById('sendError');
+        err.style.display = 'none';
+        const body = {
+            trackingNumber: document.getElementById('f-tracking').value.trim(),
+            customerName:   document.getElementById('f-name').value.trim(),
+            eventType:      document.getElementById('f-event').value,
+            channel:        parseInt(document.getElementById('f-channel').value),
+            recipient:      document.getElementById('f-recipient').value.trim()
+        };
+        if (!body.trackingNumber || !body.customerName || !body.eventType || !body.recipient) {
+            err.textContent = 'Please fill in all fields.';
+            err.style.display = 'block';
+            return;
+        }
+        try {
+            const r = await fetch('/api/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) throw new Error();
+            document.getElementById('sendModal').classList.remove('open');
+            loadKpis();
+            loadNotifications();
+        } catch {
+            err.textContent = 'Failed to send. Please try again.';
+            err.style.display = 'block';
+        }
+    }
+
+    loadKpis();
+    loadNotifications();
+</script>
