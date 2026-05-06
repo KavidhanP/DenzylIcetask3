@@ -5,7 +5,7 @@ namespace LogiTech.Services
     public class InMemoryNotificationRepository : INotificationRepository
     {
         private readonly List<ShipmentNotification> _notifications = new();
-        private readonly List<WebhookSubscription> _webhooks = new();
+
         private readonly object _lock = new();
 
         public InMemoryNotificationRepository()
@@ -46,13 +46,7 @@ namespace LogiTech.Services
                 }
             });
 
-            _webhooks.Add(new WebhookSubscription
-            {
-                ClientName = "Demo Enterprise Client",
-                EndpointUrl = "https://webhook.site/demo-endpoint",
-                Secret = "demo-secret",
-                TriggerCount = 43
-            });
+            
         }
 
         public IReadOnlyList<ShipmentNotification> GetNotifications()
@@ -79,39 +73,6 @@ namespace LogiTech.Services
             }
         }
 
-        public IReadOnlyList<WebhookSubscription> GetWebhooks()
-        {
-            lock (_lock) return _webhooks.OrderByDescending(w => w.CreatedAt).ToList();
-        }
-
-        public WebhookSubscription? GetWebhook(Guid id)
-        {
-            lock (_lock) return _webhooks.FirstOrDefault(w => w.Id == id);
-        }
-
-        public void AddWebhook(WebhookSubscription w)
-        {
-            lock (_lock) _webhooks.Add(w);
-        }
-
-        public void DisableWebhook(Guid id)
-        {
-            lock (_lock)
-            {
-                var w = _webhooks.FirstOrDefault(x => x.Id == id);
-                if (w is not null) w.IsActive = false;
-            }
-        }
-
-        public void RecordWebhookAttempt(Guid webhookId, bool successful)
-        {
-            lock (_lock)
-            {
-                var w = _webhooks.FirstOrDefault(x => x.Id == webhookId);
-                if (w is null) return;
-                w.TriggerCount++;
-                if (!successful) w.FailedCount++;
-            }
-        }
+     
     }
 }

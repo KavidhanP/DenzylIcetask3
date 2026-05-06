@@ -33,8 +33,7 @@ namespace LogiTech.Controllers
             return Ok(new
             {
                 notificationsSent = sent,
-                deliveryRate = total == 0 ? 0 : Math.Round((double)sent / total * 100, 1),
-                webhooksTriggered = _repository.GetWebhooks().Sum(w => w.TriggerCount)
+                deliveryRate = total == 0 ? 0 : Math.Round((double)sent / total * 100, 1)
             });
         }
 
