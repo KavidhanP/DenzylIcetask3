@@ -358,10 +358,6 @@
    asp-controller="Notification" asp-action="Index">
     <span>🔔</span> Notifications
 </a>
-<a class="nav-link @(ViewData["ActivePage"]?.ToString() == "Webhook" ? "active" : "")"
-   asp-controller="Webhook" asp-action="Index">
-    <span>⚡</span> Webhooks
-</a>
         <div class="sidebar-footer">
             <a class="logout-btn" asp-controller="Auth" asp-action="Logout">Sign Out</a>
         </div>
